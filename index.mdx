@@ -56,45 +56,44 @@ BlockHeight's service would analyze this data and determine:
 - **Providers B, C, D: AT** (reliable current state)
 - **Provider_F: BEHIND** (3 blocks behind, potentially stale)
 
-```mermaid
-flowchart TB
-subgraph "BlockHeight Service Analysis"
-process["BlockHeight Analysis Service"]
-end
-
-subgraph "Provider States"
-PA["Provider_A\\nBlock 29,000,001\\n(AHEAD)"]
-PB["Provider_B\\nBlock 29,000,000\\n(AT CONSENSUS)"]
-PC["Provider_C\\nBlock 29,000,000\\n(AT CONSENSUS)"]
-PD["Provider_D\\nBlock 29,000,000\\n(AT CONSENSUS)"]
-PF["Provider_F\\nBlock 28,999,997\\n(BEHIND)"]
-end
-
-subgraph "Analysis Results"
-consensus["Network Consensus:\\nBlock 29,000,000"]
-ahead["Providers Ahead:\\nProvider_A (\+1)"]
-current["Providers At Consensus:\\nProviders B, C, D"]
-behind["Providers Behind:\\nProvider_F (-3)"]
-end
-
-PA --\> process
-PB --\> process
-PC --\> process
-PD --\> process
-PF --\> process
-
-process --\> consensus
-process --\> ahead
-process --\> current
-process --\> behind
-
-classDef ahead fill:#a3f7bf,stroke:#333,stroke-width:1px
-classDef atConsensus fill:#ffd56b,stroke:#333,stroke-width:1px
-classDef behind fill:#ff9a8b,stroke:#333,stroke-width:1px
-classDef consensus fill:#77acf1,stroke:#333,stroke-width:1px
-
-class PA ahead
-class PB,PC,PD atConsensus
-class PF behind
-class consensus consensus
+```mermaid [expandable]
+graph TB
+    %% Providers
+    PA["Provider_A<br/>Block 29,000,001<br/>(AHEAD)<br/>blocks_behind: -1"]
+    PB["Provider_B<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
+    PC["Provider_C<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
+    PD["Provider_D<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
+    PF["Provider_F<br/>Block 28,999,997<br/>(BEHIND)<br/>blocks_behind: 3"]
+    
+    %% Analysis Node
+    process["BlockHeight Analysis Service"]
+    
+    %% Results
+    consensus["Network Consensus:<br/>Block 29,000,000"]
+    ahead["Providers Ahead:<br/>Provider_A (+1)"]
+    current["Providers At Consensus:<br/>Providers B, C, D"]
+    behind["Providers Behind:<br/>Provider_F (-3)"]
+    
+    %% Connections
+    PA --> process
+    PB --> process
+    PC --> process
+    PD --> process
+    PF --> process
+    
+    process --> consensus
+    process --> ahead
+    process --> current
+    process --> behind
+    
+    %% Styling with the provided hex colors
+    style PA fill:#00E383,stroke:#333
+    style PB fill:#F9BE08,stroke:#333
+    style PC fill:#F9BE08,stroke:#333
+    style PD fill:#F9BE08,stroke:#333
+    style PF fill:#FF4041,stroke:#333
+    style consensus fill:#6298FF,stroke:#333
+    style ahead fill:#00E383,stroke:#333
+    style current fill:#F9BE08,stroke:#333
+    style behind fill:#FF4041,stroke:#333
 ```
