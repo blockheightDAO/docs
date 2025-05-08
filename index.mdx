@@ -60,19 +60,19 @@ BlockHeight's service would analyze this data and determine:
 graph TB
     %% Providers
     PA["Provider_A<br/>Block 29,000,001<br/>(AHEAD)<br/>blocks_behind: -1"]
-    PB["Provider_B<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
-    PC["Provider_C<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
-    PD["Provider_D<br/>Block 29,000,000<br/>(AT CONSENSUS)<br/>blocks_behind: 0"]
+    PB["Provider_B<br/>Block 29,000,000<br/>(AT)<br/>blocks_behind: 0"]
+    PC["Provider_C<br/>Block 29,000,000<br/>(AT)<br/>blocks_behind: 0"]
+    PD["Provider_D<br/>Block 29,000,000<br/>(AT)<br/>blocks_behind: 0"]
     PF["Provider_F<br/>Block 28,999,997<br/>(BEHIND)<br/>blocks_behind: 3"]
     
     %% Analysis Node
-    process["BlockHeight Analysis Service"]
+    process["BlockHeight"]
     
     %% Results
     consensus["Network Consensus:<br/>Block 29,000,000"]
-    ahead["Providers Ahead:<br/>Provider_A (+1)"]
-    current["Providers At Consensus:<br/>Providers B, C, D"]
-    behind["Providers Behind:<br/>Provider_F (-3)"]
+    ahead["Providers Ahead:<br/>Provider_A (+1)<br/>blocks_behind: -1"]
+    current["Providers At Consensus:<br/>Providers B, C, D<br/>blocks_behind: 0"]
+    behind["Providers Behind:<br/>Provider_F (-3)<br/>blocks_behind: 1"]
     
     %% Connections
     PA --> process
@@ -97,3 +97,61 @@ graph TB
     style current fill:#F9BE08,stroke:#333
     style behind fill:#FF4041,stroke:#333
 ```
+
+<RequestExample>
+
+``` filename
+https://api.internal.blockheight.xyz/providers?api_key=bh_e5849b6f-d3fc-4c3f-92a7-9f5a825a71a9
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+``` filename
+{
+      "id": "base-official",
+      "name": "Base-Official",
+      "networks": [
+        {
+          "network": "base",
+          "chain_id": "8453",
+          "blockheight": {
+            "blockheight_status": "at",
+            "blocks_behind": 0,
+            "last_checked": "2025-05-07 01:24:02",
+            "seconds_ago": 145357,
+            "reported_blockheight": "29895847"
+          },
+          "events": {
+            "active": {
+              "total": 0,
+              "by_type": {
+                "height_stagnation": 0,
+                "provider_error": 0,
+                "high_latency": 0
+              }
+            },
+            "recent": {
+              "last_5min": 0,
+              "last_hour": 0
+            }
+          }
+        }
+      ]
+}
+```
+
+</ResponseExample>
+
+## Strategic Routing Decisions
+
+With this intelligence, developers can implement nuanced RPC routing strategies:
+
+| Use Case                | Optimal Provider Selection         | Why                                                             |
+| ----------------------- | ---------------------------------- | --------------------------------------------------------------- |
+| High-frequency trading  | Provider_A                         | Access to the newest blocks first creates competitive advantage |
+| Regular transactions    | Providers B, C, or D               | At consensus, ensuring reliable current state                   |
+| Application reads       | Providers B, C, or D               | Consistent data at consensus height                             |
+| Historical data queries | Any provider (including F)         | Historical blocks are immutable and available on all nodes      |
+| High-volume operations  | Load balance across A, B, C, and D | Distribute traffic among reliable nodes                         |
