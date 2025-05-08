@@ -1,12 +1,11 @@
 ---
-description: "Get Started"
 title: "Introduction"
+description: "BlockHeight is the community-driven observability protocol helping developers power faster, smarter, more reliable web3 apps."
 ---
 
 ## Overview
 
-**BlockHeight is the community-driven observability protocol helping developers power faster, smarter, more reliable web3 apps.**\
-We continuously track the performance and reliability of RPC node providers across major networks, surfacing real-time insights into block propagation and consensus lag. Developers use BlockHeight to identify which endpoints are ahead, in-sync, or falling behind—enabling intelligent routing, faster state access, and more resilient web3 infrastructure. In a world of distributed nodes, we create consensus about consensus.
+At BlockHeight, we continuously track the performance and reliability of RPC node providers across major networks, surfacing real-time insights into block propagation and consensus lag. Developers use BlockHeight to identify which endpoints are ahead, in-sync, or falling behind—enabling intelligent routing, faster state access, and more resilient web3 infrastructure. In a world of distributed nodes, we create consensus about consensus.
 
 <img
   className="hidden dark:block"
@@ -21,6 +20,7 @@ In blockchain networks, consensus is achieved at the protocol level through vali
 This creates a critical reliability challenge: how do developers know which RPC providers are truly at the current block height? How can they ensure their applications are reading the most current state and writing transactions based on up-to-date information?
 
 Even a slight delay of a few blocks can result in:
+
 - Failed transactions
 - Missed financialopportunities
 
@@ -53,5 +53,48 @@ BlockHeight's service would analyze this data and determine:
 
 - **Network Consensus: Block 29,000,000** (majority agreement)
 - **Provider_A: AHEAD** (seeing new blocks faster than others)
-- **Providers B, C, D: AT CONSENSUS** (reliable current state)
+- **Providers B, C, D: AT** (reliable current state)
 - **Provider_F: BEHIND** (3 blocks behind, potentially stale)
+
+```mermaid
+flowchart TB
+subgraph "BlockHeight Service Analysis"
+process["BlockHeight Analysis Service"]
+end
+
+subgraph "Provider States"
+PA["Provider_A\\nBlock 29,000,001\\n(AHEAD)"]
+PB["Provider_B\\nBlock 29,000,000\\n(AT CONSENSUS)"]
+PC["Provider_C\\nBlock 29,000,000\\n(AT CONSENSUS)"]
+PD["Provider_D\\nBlock 29,000,000\\n(AT CONSENSUS)"]
+PF["Provider_F\\nBlock 28,999,997\\n(BEHIND)"]
+end
+
+subgraph "Analysis Results"
+consensus["Network Consensus:\\nBlock 29,000,000"]
+ahead["Providers Ahead:\\nProvider_A (\+1)"]
+current["Providers At Consensus:\\nProviders B, C, D"]
+behind["Providers Behind:\\nProvider_F (-3)"]
+end
+
+PA --\> process
+PB --\> process
+PC --\> process
+PD --\> process
+PF --\> process
+
+process --\> consensus
+process --\> ahead
+process --\> current
+process --\> behind
+
+classDef ahead fill:#a3f7bf,stroke:#333,stroke-width:1px
+classDef atConsensus fill:#ffd56b,stroke:#333,stroke-width:1px
+classDef behind fill:#ff9a8b,stroke:#333,stroke-width:1px
+classDef consensus fill:#77acf1,stroke:#333,stroke-width:1px
+
+class PA ahead
+class PB,PC,PD atConsensus
+class PF behind
+class consensus consensus
+```
