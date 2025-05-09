@@ -1,33 +1,465 @@
 ---
 title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+description: 'Explore the BlockHeight API'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## API Documentation
 
-## Welcome
+BlockHeight provides a comprehensive REST API for accessing real-time data about blockchain provider performance and reliability. Below are the key endpoints with examples and parameter descriptions.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+### Authentication
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+All API endpoints require an API key for authentication. To obtain an API key, please email blockheightDAO@gmail.com.
 
-## Authentication
+To use your API key, include it in your request headers:
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+```
+X-API-Key: your_api_key_here
+```
 
+### Base URL
+
+```
+https://api.internal.blockheight.xyz
+```
+
+### Endpoints
+
+#### 1. Get Providers
+
+Retrieve a list of all monitored providers with their current status.
+
+```
+GET /providers
+```
+
+**Optional Query Parameters:**
+- `chain_id` (integer): Filter providers by chain ID (1 for Ethereum, 8453 for Base)
+- `recent` (integer): Filter blockheight statuses within the last N seconds
+- `blockheight_status` (string): Filter by status ("at", "ahead", "behind")
+
+**Example Request:**
+```bash
+curl -X GET "https://api.internal.blockheight.xyz/providers?chain_id=1&blockheight_status=behind" \
+     -H "X-API-Key: your_api_key_here"
+```
+
+**Example Response:**
 ```json
-"security": [
+{
+  "providers": [
+    {
+      "id": "alchemy",
+      "name": "Alchemy",
+      "networks": [
+        {
+          "network": "ethereum",
+          "chain_id": "1",
+          "blockheight": {
+            "blockheight_status": "behind",
+            "blocks_behind": 3,
+            "last_checked": "2025-05-01T12:34:56Z",
+            "seconds_ago": 45,
+            "reported_blockheight": "18947532"
+          },
+          "events": {
+            "active": {
+              "total": 1,
+              "by_type": {
+                "height_stagnation": 1,
+                "provider_error": 0,
+                "high_latency": 0
+              }
+            },
+            "recent": {
+              "last_5min": 1,
+              "last_hour": 2
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 2. Get Networks
+
+Retrieve all blockchain networks monitored by BlockHeight.
+
+```
+GET /networks
+```
+
+**Example Request:**
+```bash
+curl -X GET "https://api.internal.blockheight.xyz/networks" \
+     -H "X-API-Key: your_api_key_here"
+```
+
+**Example Response:**
+```json
+[
   {
-    "bearerAuth": []
+    "network": "ethereum",
+    "chain_id": 1
+  },
+  {
+    "network": "base",
+    "chain_id": 8453
   }
 ]
 ```
+
+#### 3. Get Network Leaderboard
+
+Retrieve a performance leaderboard for a specific network, comparing all providers.
+
+```
+GET /leaderboard/{network}
+```
+
+**Path Parameters:**
+- `network` (string): Network name (ethereum or base)
+
+**Query Parameters:**
+- `time_period` (string): Time period for data aggregation (day, week, month)
+
+**Example Request:**
+```bash
+curl -X GET "https://api.internal.blockheight.xyz/leaderboard/ethereum?time_period=week" \
+     -H "X-API-Key: your_api_key_here"
+```
+
+**Example Response:**
+```json
+{
+  "network": "ethereum",
+  "chain_id": "1",
+  "time_period": "week",
+  "time_range": {
+    "start": "2025-04-25 00:00:00",
+    "end": "2025-05-01 23:59:59"
+  },
+  "provider_metrics": [
+    {
+      "provider_name": "Infura",
+      "latency": {
+        "by_region": [
+          {
+            "provider_name": "Infura",
+            "region": "North America",
+            "p50_latency_ms": 120.45,
+            "p90_latency_ms": 189.32,
+            "total_tests": 5672,
+            "rank": 1,
+            "is_tied": false,
+            "tied_count": 0
+          }
+        ],
+        "overall": {
+          "provider_name": "Infura",
+          "overall_p50_latency_ms": 142.67,
+          "rank": 1,
+          "is_tied": false,
+          "tied_count": 0
+        }
+      },
+      "blockheight_accuracy": {
+        "provider_name": "Infura",
+        "ahead_count": 1245,
+        "at_count": 4328,
+        "behind_count": 99,
+        "total_count": 5672,
+        "tip_accuracy_percentage": 98.25,
+        "ahead_percentage": 21.95,
+        "tip_rank": 1,
+        "ahead_rank": 2,
+        "rank": 1
+      }
+    }
+  ]
+}
+```
+
+#### 4. Get Latency Metrics
+
+Retrieve detailed latency metrics for providers.
+
+```
+GET /latency
+```
+
+**Query Parameters:**
+- `provider` (string): Filter by provider name
+- `network` (string): Filter by network (ethereum or base)
+- `region` (string): Filter by region
+- `method` (string): Filter by RPC method
+- `chain_id` (integer): Filter by chain ID (1 for Ethereum, 8453 for Base)
+- `metrics` (string): Comma-separated list of metrics to include (p50,p90,samplesize)
+- `date` (string): Filter by date (YYYY-MM-DD format)
+
+**Example Request:**
+```bash
+curl -X GET "https://api.internal.blockheight.xyz/latency?network=ethereum&region=North%20America" \
+     -H "X-API-Key: your_api_key_here"
+```
+
+**Example Response:**
+```json
+{
+  "metadata": {
+    "date": "2025-05-01",
+    "filters": {
+      "network": "ethereum",
+      "region": "North America"
+    }
+  },
+  "providers": [
+    {
+      "provider": "Infura",
+      "networks": [
+        {
+          "network": "ethereum",
+          "chain_id": "1",
+          "regions": [
+            {
+              "region": "North America",
+              "test_methods": [
+                {
+                  "test_type": "simple",
+                  "method": "eth_blockNumber",
+                  "p50_latency_ms": 125.45,
+                  "p90_latency_ms": 187.32,
+                  "sample_size": 1482
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 5. Get Events
+
+Retrieve events detected by the BlockHeight monitoring system.
+
+```
+GET /events
+```
+
+**Query Parameters:**
+- `type` (string): Filter by event type (high_latency, height_stagnation, provider_error)
+- `provider_id` (string): Filter by provider ID
+- `chain_id` (string): Filter by chain ID (1 for Ethereum, 8453 for Base)
+- `blocks_behind_min` (integer): Filter by minimum blocks behind
+- `status` (string): Filter by event status (active, resolved)
+- `limit` (integer): Number of results per page (default 100)
+- `offset` (integer): Offset for pagination
+
+**Example Request:**
+```bash
+curl -X GET "https://api.internal.blockheight.xyz/events?type=height_stagnation&status=active" \
+     -H "X-API-Key: your_api_key_here"
+```
+
+**Example Response:**
+```json
+{
+  "data": [
+    {
+      "id": "event_12345",
+      "provider_name": "Alchemy",
+      "network": "Ethereum",
+      "chain_id": "1",
+      "type": "height_stagnation",
+      "timestamp": "2025-05-01T12:34:56Z",
+      "resolved_at": null,
+      "status": "active",
+      "reason": "Provider is 3 blocks behind consensus",
+      "metadata": {
+        "blocks_behind": 3,
+        "reported_blockheight": "18947532",
+        "consensus_blockheight": "18947535"
+      },
+      "measurements": {
+        "event_created": "2025-05-01T12:35:12Z"
+      }
+    }
+  ],
+  "pagination": {
+    "limit": 100,
+    "offset": 0,
+    "total": 12,
+    "has_next": false,
+    "has_previous": false
+  },
+  "metadata": {
+    "table_name": "events",
+    "timestamp": "2025-05-01T13:45:23Z",
+    "filters": {
+      "type": "height_stagnation",
+      "status": "active"
+    }
+  }
+}
+```
+
+#### 6. Raw Data Endpoints
+
+BlockHeight provides access to raw data for advanced analysis:
+
+- **Raw Simple Tests:** `GET /raw/simple-tests`
+- **Raw Advanced Tests:** `GET /raw/advanced-tests`
+- **Raw Latency Stats:** `GET /raw/latency-stats`
+- **Raw Provider Consensus:** `GET /raw/provider-consensus`
+
+These endpoints accept standard pagination parameters (`limit` and `offset`) and provide detailed information about the underlying data that drives BlockHeight's analytics.
+
+## Testing Methodology
+
+BlockHeight employs a sophisticated testing methodology to ensure accurate and reliable data:
+
+### EdgeProbe Architecture
+
+Our testing agent, EdgeProbe, is deployed in multiple regions worldwide to provide a truly global perspective on provider performance. Each EdgeProbe instance:
+
+1. Runs standardized tests against all providers at regular intervals
+2. Records latency, errors, and block heights
+3. Submits results to our central database for analysis
+
+### Types of Tests
+
+#### Simple Tests
+- **Frequency:** Multiple tests per minute depending on the network's block time
+- **Metrics:** Latency, block height, success/failure
+- **Methods:** eth_blockNumber, eth_chainId, eth_gasPrice
+
+#### Advanced Tests
+- **Frequency:** Tests every 1 to 5 minutes
+- **Metrics:** Complex operations timing, state inconsistency detection
+- **Methods:** eth_getBlockByNumber, eth_call, eth_getLogs
+
+### Height Stagnation Detection
+
+Our height stagnation detector identifies providers that are falling behind in block height compared to consensus:
+
+1. Determines network consensus by analyzing block heights reported by all providers
+2. Identifies providers with status "Behind" and calculates blocks behind
+3. Creates events when a provider falls significantly behind (configurable threshold)
+4. Resolves events when a provider returns to consensus ("At" or "Ahead" status)
+
+### Event Lifecycle
+
+Events in the BlockHeight system have a specific lifecycle:
+
+1. **Timestamp:** When the issue was first detected in monitoring data
+2. **Event Created:** When our detection system created a record in the database
+3. **Resolved At:** When the provider actually fixed the issue
+
+This approach ensures accurate measurement of issue duration and provider responsiveness.
+
+## Integration Examples
+
+### JavaScript
+
+```javascript
+async function getProviderStatus() {
+  const response = await fetch("https://api.internal.blockheight.xyz/providers", {
+    headers: {
+      "X-API-Key": "your_api_key_here"
+    }
+  });
+  
+  const data = await response.json();
+  return data;
+}
+
+// Example: Find providers that are at consensus on Ethereum
+async function getProvidersAtConsensus() {
+  const data = await getProviderStatus();
+  
+  const ethereumProviders = data.providers.filter(provider => {
+    return provider.networks.some(network => 
+      network.network === "ethereum" && 
+      network.blockheight?.blockheight_status === "at"
+    );
+  });
+  
+  return ethereumProviders;
+}
+```
+
+### Python
+
+```python
+import requests
+
+API_KEY = "your_api_key_here"
+BASE_URL = "https://api.internal.blockheight.xyz"
+
+def get_active_events(event_type=None, provider=None):
+    params = {
+        "status": "active"
+    }
+    
+    if event_type:
+        params["type"] = event_type
+        
+    if provider:
+        params["provider_id"] = provider
+    
+    response = requests.get(
+        f"{BASE_URL}/events",
+        params=params,
+        headers={"X-API-Key": API_KEY}
+    )
+    
+    return response.json()
+
+# Example: Monitor for providers with high latency issues
+def alert_on_high_latency():
+    events = get_active_events(event_type="high_latency")
+    
+    if events["data"]:
+        print(f"⚠️ {len(events['data'])} providers experiencing high latency!")
+        for event in events["data"]:
+            print(f"- {event['provider_name']} on {event['network']}: {event['reason']}")
+    else:
+        print("✅ No high latency events detected")
+```
+
+## Getting Started
+
+To access the BlockHeight API:
+
+1. Email blockheightDAO@gmail.com to request an API key
+2. Include in your request:
+   - Your name and organization
+   - Intended use case
+   - Expected request volume
+3. Once approved, you'll receive your API key and welcome information
+4. Integrate the API using the documentation above
+
+## Best Practices
+
+1. **Implement Strategic Routing:**
+   - Route read operations to providers at consensus
+   - Route time-sensitive transactions to providers ahead of consensus
+   - Avoid providers that are consistently behind consensus
+
+2. **Monitor for Events:**
+   - Poll the `/events` endpoint regularly to detect issues with your providers
+   - Create alerts for active events affecting your critical providers
+
+3. **Use Multiple Providers:**
+   - Build resilience by integrating with multiple providers
+   - Use BlockHeight data to implement intelligent failover strategies
+
+## Support
+
+For support or questions about the BlockHeight API:
+- Email: blockheightDAO@gmail.com
